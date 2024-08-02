@@ -1,110 +1,132 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import "./App.css";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import './App.css'; // Import your main CSS file
+
+// Navbar Component
 const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="container">
         <h1 className="navbar-title">My App</h1>
         <ul className="navbar-links">
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/data">View Data</Link>
-          </li>
+          <li><Link to="/">Home</Link></li>
+          <li><Link to="/data">View Data</Link></li>
         </ul>
       </div>
     </nav>
   );
 };
 
+// Form Component with Enhanced Validation
 const MyForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    number: "",
-    password: "",
+    name: '',
+    email: '',
+    number: '',
+    password: '',
   });
 
   const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    number: "",
-    password: "",
+    name: '',
+    email: '',
+    number: '',
+    password: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Update form data
     setFormData({
       ...formData,
       [name]: value,
     });
+
+    // Validate the input
+    validate(name, value);
   };
 
-  const validate = () => {
-    let valid = true;
+  const validate = (name, value) => {
     let errors = {};
 
-    if (!formData.name) {
-      errors.name = "Name is required";
-      valid = false;
-    } else {
-      const nameParts = formData.name.trim().split(/\s+/);
-      if (nameParts.length < 2) {
-        errors.name = "Full name is required";
-        valid = false;
-      }
-    }
+    switch (name) {
+      case 'name':
+        if (!value) {
+          errors.name = 'Name is required';
+        } else {
+          const nameParts = value.trim().split(/\s+/);
+          if (nameParts.length < 2) {
+            errors.name = 'Full name is required';
+          }
+        }
+        break;
 
-    if (!formData.email) {
-      errors.email = "Email is required";
-      valid = false;
-    } else {
-      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailPattern.test(formData.email)) {
-        errors.email = "Email address is invalid";
-        valid = false;
-      }
-    }
+      case 'email':
+        if (!value) {
+          errors.email = 'Email is required';
+        } else {
+          const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          if (!emailPattern.test(value)) {
+            errors.email = 'Email address is invalid';
+          }
+        }
+        break;
 
-    if (!formData.number) {
-      errors.number = "Number is required";
-      valid = false;
-    } else if (!/^\d+$/.test(formData.number)) {
-      errors.number = "Number must be digits only";
-      valid = false;
-    }
+      case 'number':
+        if (!value) {
+          errors.number = 'Number is required';
+        } else if (!/^[789]\d{9}$/.test(value)) {
+          errors.number = 'Number must be exactly 10 digits, starting with 7, 8, or 9';
+        }
+        break;
 
-    if (!formData.password) {
-      errors.password = "Password is required";
-      valid = false;
-    } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters long";
-      valid = false;
+      case 'password':
+        if (!value) {
+          errors.password = 'Password is required';
+        } else if (value.length < 8) {
+          errors.password = 'Password must be at least 8 characters long';
+        }
+        break;
+
+      default:
+        break;
     }
 
     setErrors(errors);
-    return valid;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (validate()) {
+    // Final validation on submit
+    if (Object.keys(errors).length === 0 && Object.values(formData).every(field => field)) {
+      // Convert email to lowercase
       const processedData = {
         ...formData,
         email: formData.email.toLowerCase(),
       };
 
-      localStorage.setItem("formData", JSON.stringify(processedData));
-      alert("Form submitted successfully!");
+      // Get existing data from local storage
+      let existingData = JSON.parse(localStorage.getItem('formData'));
+      
+      // Ensure existingData is an array
+      if (!Array.isArray(existingData)) {
+        existingData = [];
+      }
+
+      existingData.push(processedData);
+
+      // Save updated data back to local storage
+      localStorage.setItem('formData', JSON.stringify(existingData));
+      alert('Form submitted successfully!');
       setFormData({
-        name: "",
-        email: "",
-        number: "",
-        password: "",
+        name: '',
+        email: '',
+        number: '',
+        password: '',
       });
+    } else {
+      alert('Please correct the errors before submitting.');
     }
   };
 
@@ -118,7 +140,7 @@ const MyForm = () => {
           value={formData.name}
           onChange={handleChange}
         />
-        {errors.name && <p>{errors.name}</p>}
+        {errors.name && <p className="error">{errors.name}</p>}
       </div>
       <div>
         <label>Email:</label>
@@ -128,7 +150,7 @@ const MyForm = () => {
           value={formData.email}
           onChange={handleChange}
         />
-        {errors.email && <p>{errors.email}</p>}
+        {errors.email && <p className="error">{errors.email}</p>}
       </div>
       <div>
         <label>Number:</label>
@@ -138,7 +160,7 @@ const MyForm = () => {
           value={formData.number}
           onChange={handleChange}
         />
-        {errors.number && <p>{errors.number}</p>}
+        {errors.number && <p className="error">{errors.number}</p>}
       </div>
       <div>
         <label>Password:</label>
@@ -148,15 +170,16 @@ const MyForm = () => {
           value={formData.password}
           onChange={handleChange}
         />
-        {errors.password && <p>{errors.password}</p>}
+        {errors.password && <p className="error">{errors.password}</p>}
       </div>
       <button type="submit">Submit</button>
     </form>
   );
 };
 
+// Data Table Component
 const DataTable = () => {
-  const data = JSON.parse(localStorage.getItem("formData")) || {};
+  const data = JSON.parse(localStorage.getItem('formData')) || [];
 
   return (
     <div className="data-table">
@@ -171,13 +194,15 @@ const DataTable = () => {
           </tr>
         </thead>
         <tbody>
-          {data.name ? (
-            <tr>
-              <td>{data.name}</td>
-              <td>{data.email}</td>
-              <td>{data.number}</td>
-              <td>{data.password}</td>
-            </tr>
+          {data.length > 0 ? (
+            data.map((entry, index) => (
+              <tr key={index}>
+                <td>{entry.name}</td>
+                <td>{entry.email}</td>
+                <td>{entry.number}</td>
+                <td>{entry.password}</td>
+              </tr>
+            ))
           ) : (
             <tr>
               <td colSpan="4">No data available</td>
@@ -189,6 +214,7 @@ const DataTable = () => {
   );
 };
 
+// Home Page Component
 const Home = () => {
   return (
     <div className="home">
@@ -198,6 +224,7 @@ const Home = () => {
   );
 };
 
+// Main App Component
 const App = () => {
   return (
     <Router>
